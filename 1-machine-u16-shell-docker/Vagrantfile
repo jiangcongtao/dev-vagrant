@@ -1,0 +1,33 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+cluster = {
+  "single" => { :ip => "192.168.33.9", :cpus => 2, :mem => 4096 }
+}
+ 
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.ssh.insert_key = false 
+  
+  cluster.each_with_index do |(hostname, info), index|
+    config.vm.define hostname do |node|
+      puts "*** VM Index: #{index}, hostname: #{hostname}  info: #{info} ***"
+      
+      node.vm.box = "bento/ubuntu-16.04"
+      node.vm.network "private_network", ip: "#{info[:ip]}"
+      node.vm.hostname = hostname # VM machine hostname
+
+      # node.vm.network "forwarded_port", guest: 8080, host: 8080
+      node.vm.provision "shell", path: "scripts/install_docker.sh"
+      node.vm.provider "virtualbox" do |v|
+        v.linked_clone = true
+        # Rename the VM name in virtualbox GUI
+        v.name = hostname
+        v.memory = "#{info[:mem]}"
+        v.cpus = "#{info[:cpus]}"
+        v.customize ["modifyvm", :id, "--memory", info[:mem], "--cpus", info[:cpus], "--hwvirtex", "on", "--nested-hw-virt", "on", '--cableconnected1', 'on']
+      end
+    end
+  end
+end
