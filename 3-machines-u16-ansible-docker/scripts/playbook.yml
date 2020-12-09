@@ -28,6 +28,18 @@
 
     - name: Update apt and install docker-ce
       apt: update_cache=yes name=docker-ce state=latest
+    
+    # Enable using docker command without sudo 
+    - name: Add group "docker"
+      group:
+        name: docker
+        state: present
+
+    # Enable using docker command without sudo
+    - user:
+        name: vagrant
+        groups: docker
+        append: yes
 
     - name: Install Docker Module for Python
       pip:
