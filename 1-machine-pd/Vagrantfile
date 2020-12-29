@@ -1,0 +1,34 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "parallels/ubuntu-14.04"
+  config.vm.hostname = "vm-ub14" 
+  config.vm.provider "parallels" do |prl|
+    # prl.update_guest_tools = true # set to false for disabling version checking
+    prl.linked_clone = true
+    prl.name = "u14"
+    prl.memory = 1024
+    prl.cpus = 2
+    prl.customize ["set", :id, "--nested-virt", "on"]
+  end
+
+  # Solution: Workaround 'vagrant ssh' failure, check the ssh config: vagrant ssh-config
+  config.ssh.host = "127.0.0.1"
+  config.ssh.port = 2322
+  config.vm.network "forwarded_port", guest: 22, host: 2322
+
+  # Disable automatic box update checking. If you disable this, then
+  # boxes will only be checked for updates when the user runs
+  # `vagrant box outdated`. This is not recommended.
+  # config.vm.box_check_update = false
+
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+  # config.vm.provision "shell", inline: <<-SHELL
+  #   apt-get update
+  #   apt-get install -y apache2
+  # SHELL
+end
