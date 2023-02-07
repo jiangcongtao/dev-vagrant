@@ -1,0 +1,35 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+BOX_NAME_UBUNTU_16="centos/7"
+
+cluster = {
+  "singleCentOS" => { :ip => "192.168.33.9", :cpus => 2, :mem => 2048 }
+}
+ 
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  cluster.each_with_index do |(hostname, info), index|
+    # debug statement
+    # puts config.inspect
+    # puts config.vm.methods.sort # print all methods
+    # puts config.vm.instance_variables.sort
+    # puts caller # Find where current code is called
+    config.vm.define hostname do |cfg|
+      puts "***** VM #{index}: #{hostname} *****"
+      
+      # config.vm.box = "ubuntu/trusty64"
+      cfg.vm.box = BOX_NAME_UBUNTU_16
+
+      cfg.vm.network :private_network, ip: "#{info[:ip]}"
+      cfg.vm.hostname = hostname # Guest OS hostname
+
+      cfg.vm.provider :virtualbox do |vb, override|  
+        vb.linked_clone = true
+        vb.name = hostname # VM name in VirtualBox GUI
+        vb.customize ["modifyvm", :id, "--memory", info[:mem], "--cpus", info[:cpus], "--hwvirtex", "on", "--nested-hw-virt", "on"]
+      end # end provider
+    end # end config
+
+  end # end cluster
+end
